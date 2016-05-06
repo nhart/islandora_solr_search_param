@@ -1,0 +1,6 @@
+name = "Islandora Solr Search Param"
+dependencies[] = islandora_solr
+description = "Allows you to apply every possible Solr parameter to your search."
+package = Islandora Search
+version = 7.x-dev
+core = 7.x

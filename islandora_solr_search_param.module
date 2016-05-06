@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * @file
+ * Defines all the hooks this module implements.
+ */
+function islandora_solr_search_param_islandora_solr_query($qp) {
+  $raw_params = variable_get('islandora_solr_search_param_params', '');
+  if (!empty($raw_params)) {
+    $computed_params = array();
+    $params = explode("\n", $raw_params);
+    foreach ($params as $param) {
+      if (!empty($param)) {
+        $param_parts = explode(">>", $param);
+        $param_name = trim($param_parts[0]);
+        $param_value = trim($param_parts[1]);
+        $computed_params[] = array(
+          'name' => $param_name,
+          'value' => $param_value,
+        );
+      }
+    }
+
+    foreach ($computed_params as $param) {
+      if (isset($qp->solrParams[$param['name']]) && is_array($qp->solrParams[$param['name']])) {
+        $qp->solrParams[$param['name']][] = $param['value'];
+      }
+      else {
+        $qp->solrParams[$param['name']] = $param['value'];
+      }
+    }
+  }
+}
+
+function islandora_solr_search_param_form_islandora_solr_admin_settings_alter(&$form, &$form_state, $form_id) {
+  $form['actions']['submit']['#submit'][] = 'islandora_solr_search_param_form_submit';
+  $form['islandora_solr_tabs']['islandora_solr_serch_param'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Advnaced Solr Params',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    'islandora_solr_search_param_params' => array(
+      '#type' => 'textarea',
+      '#title' => 'Custom Parameters',
+      '#size' => 30,
+      '#description' => 'Some special format, likely JSON.',
+      '#default_value' => variable_get('islandora_solr_search_param_params', ''),
+    ),
+  );
+}
+
+function islandora_solr_search_param_form_submit($form, &$form_state) {
+  variable_set('islandora_solr_search_param_params', $form_state['values']['islandora_solr_search_param_params']);
+}
